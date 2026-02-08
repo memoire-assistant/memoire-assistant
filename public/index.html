@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mémoire personnelle</title>
+  <style>
+body {
+  font-family: sans-serif;
+  max-width: 100%;
+  margin: 0;
+  padding: 16px;
+}
+
+.subtitle {
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.input-zone input {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.buttons button,
+#voiceToggle {
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.status {
+  color: #777;
+  font-style: italic;
+  min-height: 1.2em;
+  margin-bottom: 10px;
+}
+
+/* Desktop */
+@media (min-width: 700px) {
+  body {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0;
+  }
+
+  .buttons button,
+  #voiceToggle {
+    flex: initial;
+  }
+}
+
+#micButton.listening {
+  background-color: #ffe6e6;
+  border-color: #ff5c5c;
+}
+
+#assistant-section {
+  display: none;
+}
+.status {
+  opacity: 0.85;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.status.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.logout-button {
+  margin-top: 24px;
+  padding: 12px 16px;
+  font-size: 14px;
+
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background-color: #fafafa;
+
+  color: #444;
+  opacity: 0.7;
+
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.logout-button:hover {
+  opacity: 1;
+  background-color: #f2f2f2;
+}
+
+  </style>
+</head>
+<body>
+  <div id="login-section">
+    <h1>Accède à ta mémoire personnelle</h1>
+
+    <p class="subtitle">
+      Entre ton email. On t’envoie un lien, rien d’autre.
+    </p>
+
+    <div class="input-zone">
+      <input
+        id="email"
+        type="email"
+        placeholder="ton@email.com"
+      />
+    </div>
+
+    <button onclick="requestLoginLink()">
+      Recevoir mon lien
+    </button>
+
+    <p class="note">
+      Pas de mot de passe. Pas de spam.
+    </p>
+
+    <p id="loginStatus" class="status"></p>
+  </div>
+
+<div id="assistant-section">
+  <button onclick="logout()" style="margin-top: 24px;">
+    Se déconnecter
+  </button>
+
+  <h1>Dis-le comme ça te vient. Je m'en souviens pour toi.</h1>
+
+  <p class="subtitle">
+    Dépose ici ce que tu ne veux pas oublier.
+  </p>
+
+  <div class="input-zone">
+    <input
+      id="message"
+      type="text"
+      placeholder="Par exemple : Appeler au garage"
+    />
+  </div>
+
+  <p id="status" class="status"></p>
+
+<div class="buttons">
+  <button onclick="sendMessage()">Envoyer</button>
+  <button id="micButton" onclick="startVoice()">🎤</button>
+  <button id="voiceToggle" onclick="toggleVoice()" aria-label="Activer ou désactiver la voix">
+    🔊 Voix : ON
+  </button>
+</div>
+
+  <script>
+const confirmations = [
+  "C’est noté.",
+  "C'est bon, je m’en souviendrai.",
+  "Je m'en souviens pour toi.",
+  "C’est fait.",
+  "Tu peux passer à autre chose."
+];
+
+async function sendMessage() {
+  const status = document.getElementById("status");
+  const messageInput = document.getElementById("message");
+
+  if (!messageInput.value.trim()) return;
+
+  status.innerText = "Je m’en occupe…";
+  status.classList.add("active");
+  messageInput.disabled = true;
+
+  try {
+    const response = await fetch("/message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: messageInput.value })
+    });
+
+    const data = await response.json();
+
+    // ⭐ LA réponse vient TOUJOURS du serveur
+    status.innerText = data.reply;
+
+if (voiceEnabled && "speechSynthesis" in window) {
+  const utterance = new SpeechSynthesisUtterance(data.reply);
+  utterance.lang = "fr-CA";
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utterance);
+}
+
+  } catch (e) {
+    status.innerText = "Une erreur est survenue.";
+  }
+
+  setTimeout(() => {
+    status.classList.remove("active");
+  }, 600);
+
+  messageInput.disabled = false;
+  messageInput.value = "";
+  messageInput.focus(); // micro-amélioration TDA ✨
+}
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  let recognition;
+  let silenceTimer = null;
+  const SILENCE_DELAY = 2000;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = "fr-CA";
+    recognition.interimResults = true;
+
+    recognition.onresult = function (event) {
+      let transcript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      document.getElementById("message").value = transcript;
+
+      silenceTimer && clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        recognition.stop();
+        sendMessage();
+      }, SILENCE_DELAY);
+    };
+  }
+
+  function startVoice() {
+    if (!recognition) {
+      alert("La reconnaissance vocale n’est pas supportée sur ce navigateur.");
+      return;
+    }
+
+    document.getElementById("micButton").classList.add("listening");
+    silenceTimer && clearTimeout(silenceTimer);
+document.getElementById("status").innerText = "Je t’écoute…";
+    recognition.start();
+  }
+async function requestLoginLink() {
+  const email = document.getElementById("email").value;
+  const status = document.getElementById("loginStatus");
+
+  if (!email) {
+    status.innerText = "Entre ton email pour continuer.";
+    return;
+  }
+
+  status.innerText = "Je t’envoie un lien…";
+
+  try {
+    const response = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    if (response.ok) {
+      status.innerText = "Regarde ta boîte courriel. Le lien arrive.";
+    } else {
+      status.innerText = "Une erreur est survenue. Réessaie.";
+    }
+  } catch (e) {
+    status.innerText = "Impossible de contacter le serveur.";
+  }
+}
+
+window.addEventListener("load", async () => {
+  const login = document.getElementById("login-section");
+  const assistant = document.getElementById("assistant-section");
+
+  // 🔒 état par défaut : jamais l’assistant sans session
+  login.style.display = "block";
+  assistant.style.display = "none";
+
+  try {
+    const res = await fetch("/me");
+
+    if (res.ok) {
+      login.style.display = "none";
+      assistant.style.display = "block";
+    }
+  } catch (e) {
+    // on garde l’état sécurisé par défaut
+  }
+});
+
+document.getElementById("message").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+let voiceEnabled = localStorage.getItem("voiceEnabled") !== "false";
+
+const voiceToggleButton = document.getElementById("voiceToggle");
+
+function updateVoiceButton() {
+  voiceToggleButton.innerText = voiceEnabled
+    ? "🔊 Voix : ON"
+    : "🔇 Voix : OFF";
+}
+
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+  localStorage.setItem("voiceEnabled", voiceEnabled);
+
+  // 🔇 couper immédiatement la voix si on désactive
+  if (!voiceEnabled && "speechSynthesis" in window) {
+    speechSynthesis.cancel();
+  }
+
+  updateVoiceButton();
+}
+
+async function logout() {
+  await fetch("/logout", { method: "POST" });
+  window.location.reload();
+}
+
+</script>
+
+
+</body>
+</html>

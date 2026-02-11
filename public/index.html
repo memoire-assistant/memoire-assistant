@@ -219,7 +219,7 @@ if (voiceEnabled && "speechSynthesis" in window) {
   if (SpeechRecognition) {
     recognition = new SpeechRecognition();
     recognition.lang = "fr-CA";
-    recognition.interimResults = true;
+    recognition.interimResults = false;
 
     recognition.onresult = function (event) {
       let transcript = "";
@@ -236,6 +236,9 @@ if (voiceEnabled && "speechSynthesis" in window) {
         sendMessage();
       }, SILENCE_DELAY);
     };
+recognition.onend = function () {
+  document.getElementById("micButton").classList.remove("listening");
+};
   }
 
   function startVoice() {

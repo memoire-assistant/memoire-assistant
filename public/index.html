@@ -235,17 +235,19 @@ if (SpeechRecognition) {
   };
 }
 
-  function startVoice() {
-    if (!recognition) {
-      alert("La reconnaissance vocale n’est pas supportée sur ce navigateur.");
-      return;
-    }
-
-    document.getElementById("micButton").classList.add("listening");
-    silenceTimer && clearTimeout(silenceTimer);
-document.getElementById("status").innerText = "Je t’écoute…";
-    recognition.start();
+function startVoice() {
+  if (!recognition) {
+    alert("La reconnaissance vocale n’est pas supportée sur ce navigateur.");
+    return;
   }
+
+  document.getElementById("message").blur(); // 👈 AJOUT IMPORTANT
+
+  document.getElementById("micButton").classList.add("listening");
+  document.getElementById("status").innerText = "Je t’écoute…";
+
+  recognition.start();
+}
 async function requestLoginLink() {
   const email = document.getElementById("email").value;
   const status = document.getElementById("loginStatus");

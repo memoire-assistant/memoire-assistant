@@ -288,7 +288,9 @@ app.post("/login", async (req, res) => {
   }
 
   console.log("✅ Token créé :", token);
-const magicLink = `http://localhost:3000/login/verify?token=${token}`;
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+
+const magicLink = `${BASE_URL}/login/verify?token=${token}`;
 
 await resend.emails.send({
 from: "Mémoire personnelle <onboarding@resend.dev>",

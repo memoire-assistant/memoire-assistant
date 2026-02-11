@@ -98,6 +98,11 @@ body {
   background-color: #f2f2f2;
 }
 
+#micButton.active {
+  transform: scale(0.92);
+  background-color: #f0f0f0;
+}
+
   </style>
 </head>
 <body>
@@ -209,48 +214,17 @@ if (voiceEnabled && "speechSynthesis" in window) {
   messageInput.focus(); // micro-amélioration TDA ✨
 }
 
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  let recognition;
-  let silenceTimer = null;
-  const SILENCE_DELAY = 2000;
-
 function startVoice() {
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+  const input = document.getElementById("message");
 
-  if (!SpeechRecognition) {
-    alert("La reconnaissance vocale n’est pas supportée sur ce navigateur.");
-    return;
-  }
+  input.focus();
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = "fr-CA";
-  recognition.interimResults = false;
+  const micButton = document.getElementById("micButton");
+  micButton.classList.add("active");
 
-  document.getElementById("micButton").classList.add("listening");
-  document.getElementById("status").innerText = "Je t’écoute…";
-
-  recognition.onresult = function (event) {
-    const transcript = event.results[0][0].transcript;
-
-    document.getElementById("message").value = transcript;
-
-    recognition.stop();
-    sendMessage();
-  };
-
-  recognition.onerror = function (event) {
-    document.getElementById("status").innerText =
-      "Erreur micro : " + event.error;
-  };
-
-  recognition.onend = function () {
-    document.getElementById("micButton").classList.remove("listening");
-  };
-
-  recognition.start();
+  setTimeout(() => {
+    micButton.classList.remove("active");
+  }, 300);
 }
 
 async function requestLoginLink() {

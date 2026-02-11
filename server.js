@@ -294,7 +294,7 @@ const magicLink = `${BASE_URL}/login/verify?token=${token}`;
 
 await resend.emails.send({
 from: "Mémoire personnelle <onboarding@resend.dev>",
-  to: "caro_gobeil@hotmail.com",
+  to: email,
   subject: "Ton accès à ta mémoire personnelle",
   html: `
     <p>Bonjour,</p>

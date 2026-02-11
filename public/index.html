@@ -216,10 +216,21 @@ if (voiceEnabled && "speechSynthesis" in window) {
   let silenceTimer = null;
   const SILENCE_DELAY = 2000;
 
-if (SpeechRecognition) {
-  recognition = new SpeechRecognition();
+function startVoice() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("La reconnaissance vocale n’est pas supportée sur ce navigateur.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
   recognition.lang = "fr-CA";
   recognition.interimResults = false;
+
+  document.getElementById("micButton").classList.add("listening");
+  document.getElementById("status").innerText = "Je t’écoute…";
 
   recognition.onresult = function (event) {
     const transcript = event.results[0][0].transcript;
@@ -231,7 +242,6 @@ if (SpeechRecognition) {
   };
 
   recognition.onerror = function (event) {
-    console.log("Speech error:", event.error);
     document.getElementById("status").innerText =
       "Erreur micro : " + event.error;
   };
@@ -239,18 +249,6 @@ if (SpeechRecognition) {
   recognition.onend = function () {
     document.getElementById("micButton").classList.remove("listening");
   };
-}
-
-function startVoice() {
-  if (!recognition) {
-    alert("La reconnaissance vocale n’est pas supportée sur ce navigateur.");
-    return;
-  }
-
-  document.getElementById("message").blur(); // 👈 AJOUT IMPORTANT
-
-  document.getElementById("micButton").classList.add("listening");
-  document.getElementById("status").innerText = "Je t’écoute…";
 
   recognition.start();
 }

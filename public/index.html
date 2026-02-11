@@ -5,102 +5,99 @@
   <title>Mémoire personnelle</title>
   <style>
 body {
-  font-family: sans-serif;
-  max-width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0;
-  padding: 16px;
+  padding: 0;
+  background: #eef2f5; /* fond calme */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+#login-section,
+#assistant-section {
+  background: white;
+  width: 92%;
+  max-width: 420px;
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+  font-size: 22px;
+  margin-bottom: 12px;
 }
 
 .subtitle {
-  color: #555;
-  margin-bottom: 12px;
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 18px;
 }
 
 .input-zone input {
   width: 100%;
-  padding: 16px;
+  padding: 18px;
   font-size: 18px;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+.input-zone input:focus {
+  border-color: #a0b4c8;
 }
 
 .buttons {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   margin-top: 12px;
 }
 
-.buttons button,
-#voiceToggle {
+.buttons button {
   flex: 1;
-  padding: 14px;
+  padding: 16px;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.buttons button:first-child {
+  background: #2d3748;
+  color: white;
+}
+
+#micButton {
+  background: #e2e8f0;
+  font-size: 20px;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  flex: none;
+}
+
+#voiceToggle {
+  background: #edf2f7;
+  font-size: 14px;
 }
 
 .status {
-  color: #777;
-  font-style: italic;
+  color: #666;
+  font-size: 14px;
   min-height: 1.2em;
   margin-bottom: 10px;
 }
 
-/* Desktop */
-@media (min-width: 700px) {
-  body {
-    max-width: 600px;
-    margin: 40px auto;
-    padding: 0;
-  }
-
-  .buttons button,
-  #voiceToggle {
-    flex: initial;
-  }
-}
-
-#micButton.listening {
-  background-color: #ffe6e6;
-  border-color: #ff5c5c;
-}
-
-#assistant-section {
-  display: none;
-}
-.status {
-  opacity: 0.85;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.status.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .logout-button {
-  margin-top: 24px;
-  padding: 12px 16px;
+  margin-top: 20px;
+  padding: 10px;
   font-size: 14px;
-
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  background-color: #fafafa;
-
-  color: #444;
-  opacity: 0.7;
-
-  cursor: pointer;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
-}
-
-.logout-button:hover {
-  opacity: 1;
-  background-color: #f2f2f2;
-}
-
-#micButton.active {
-  transform: scale(0.92);
-  background-color: #f0f0f0;
+  background: none;
+  border: none;
+  color: #666;
 }
 
   </style>

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Mémoire personnelle</title>
+<style>
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0;
@@ -82,7 +83,7 @@ h1 {
   cursor: pointer;
 }
 
-.buttons button:first-child {
+.primary {
   background: #2d3748;
   color: white;
 }
@@ -111,7 +112,7 @@ h1 {
   border: none;
   color: #666;
 }
-
+</style>
 </head>
 <body>
   <div id="login-section">
@@ -163,7 +164,7 @@ h1 {
   <p id="status" class="status"></p>
 
 <div class="buttons">
-  <button onclick="sendMessage()">Envoyer</button>
+  <button class="primary" onclick="sendMessage()">Envoyer</button>
   <button id="voiceToggle" onclick="toggleVoice()" aria-label="Activer ou désactiver la voix">
     🔊 Voix : ON
   </button>

@@ -216,30 +216,24 @@ if (voiceEnabled && "speechSynthesis" in window) {
   let silenceTimer = null;
   const SILENCE_DELAY = 2000;
 
-  if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.lang = "fr-CA";
-    recognition.interimResults = false;
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = "fr-CA";
+  recognition.interimResults = false;
 
-    recognition.onresult = function (event) {
-      let transcript = "";
+  recognition.onresult = function (event) {
+    const transcript = event.results[0][0].transcript;
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
+    document.getElementById("message").value = transcript;
 
-      document.getElementById("message").value = transcript;
+    recognition.stop();
+    sendMessage();
+  };
 
-      silenceTimer && clearTimeout(silenceTimer);
-      silenceTimer = setTimeout(() => {
-        recognition.stop();
-        sendMessage();
-      }, SILENCE_DELAY);
-    };
-recognition.onend = function () {
-  document.getElementById("micButton").classList.remove("listening");
-};
-  }
+  recognition.onend = function () {
+    document.getElementById("micButton").classList.remove("listening");
+  };
+}
 
   function startVoice() {
     if (!recognition) {

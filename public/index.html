@@ -230,6 +230,12 @@ if (SpeechRecognition) {
     sendMessage();
   };
 
+  recognition.onerror = function (event) {
+    console.log("Speech error:", event.error);
+    document.getElementById("status").innerText =
+      "Erreur micro : " + event.error;
+  };
+
   recognition.onend = function () {
     document.getElementById("micButton").classList.remove("listening");
   };
@@ -248,6 +254,7 @@ function startVoice() {
 
   recognition.start();
 }
+
 async function requestLoginLink() {
   const email = document.getElementById("email").value;
   const status = document.getElementById("loginStatus");

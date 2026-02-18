@@ -2,7 +2,16 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Mémoire personnelle</title>
+  
+  <!-- PWA Configuration -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2d3748">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mémoire">
+  <link rel="apple-touch-icon" href="/icon-192.png">
 <style>
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -36,7 +45,41 @@ h1 {
   margin-bottom: 28px;
 }
 
-/* Input + micro intégré */
+/* Input général */
+input[type="email"],
+input[type="text"] {
+  width: 100%;
+  padding: 20px;
+  font-size: 20px;
+  border-radius: 16px;
+  border: 1px solid #ddd;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+input[type="email"]:focus,
+input[type="text"]:focus {
+  border-color: #a0b4c8;
+}
+
+/* Boutons généraux */
+button {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: #2d3748;
+  color: white;
+}
+
+button:hover {
+  background: #1a202c;
+}
+
+/* Input + micro intégré (page assistant) */
 
 .input-wrapper {
   display: flex;
@@ -47,16 +90,7 @@ h1 {
 
 .input-wrapper input {
   flex: 1;
-  padding: 20px;
-  font-size: 20px;
-  border-radius: 16px;
-  border: 1px solid #ddd;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.input-wrapper input:focus {
-  border-color: #a0b4c8;
+  margin-bottom: 0;
 }
 
 #micButton {
@@ -70,22 +104,19 @@ h1 {
   flex-shrink: 0;
 }
 
-/* Boutons */
+/* Boutons multiples (page assistant) */
 
 .buttons {
   display: flex;
   gap: 24px;
   margin-top: 28px;
-margin-bottom: 40px;
+  margin-bottom: 40px;
 }
 
 .buttons button {
   flex: 1;
   padding: 16px;
   font-size: 16px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
 }
 
 .primary {
@@ -95,6 +126,7 @@ margin-bottom: 40px;
 
 #voiceToggle {
   background: #edf2f7;
+  color: #2d3748;
   font-size: 14px;
 }
 
@@ -102,9 +134,17 @@ margin-bottom: 40px;
 
 .status {
   color: #666;
-  font-size: 14px;
+  font-size: 16px;
   min-height: 1.2em;
   margin-bottom: 10px;
+}
+
+/* Note sous login */
+.note {
+  font-size: 16px;
+  color: #666;
+  margin-top: 16px;
+  margin-bottom: 0;
 }
 
 /* Logout */
@@ -116,6 +156,7 @@ margin-bottom: 40px;
   background: none;
   border: none;
   color: #666;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -127,13 +168,11 @@ margin-bottom: 40px;
       Entre ton email. On t’envoie un lien, rien d’autre.
     </p>
 
-    <div class="input-zone">
-      <input
-        id="email"
-        type="email"
-        placeholder="ton@email.com"
-      />
-    </div>
+    <input
+      id="email"
+      type="email"
+      placeholder="ton@email.com"
+    />
 
     <button onclick="requestLoginLink()">
       Recevoir mon lien
@@ -321,6 +360,15 @@ function toggleVoice() {
 async function logout() {
   await fetch("/logout", { method: "POST" });
   window.location.reload();
+}
+
+// Enregistrement du Service Worker pour PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => console.log('✅ Service Worker enregistré'))
+      .catch(err => console.log('❌ Erreur Service Worker:', err));
+  });
 }
 
 </script>

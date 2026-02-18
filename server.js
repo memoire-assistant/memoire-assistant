@@ -356,6 +356,45 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
+app.get("/get-notes", async (req, res) => {
+  const userEmail = req.cookies.user_email;
+
+  if (!userEmail) {
+    return res.status(401).json({ error: "Non connecté" });
+  }
+
+  try {
+    // Récupérer l'ID utilisateur
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", userEmail)
+      .single();
+
+    if (userError || !userData) {
+      return res.status(404).json({ error: "Utilisateur introuvable" });
+    }
+
+    // Récupérer toutes les notes de l'utilisateur, triées par date de création
+    const { data: notes, error: notesError } = await supabase
+      .from("notes")
+      .select("titre, contenu, date_rappel, created_at")
+      .eq("user_id", userData.id)
+      .order("created_at", { ascending: false });
+
+    if (notesError) {
+      console.error("Erreur Supabase:", notesError);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
+
+    res.json({ notes: notes || [] });
+
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
 app.get("/me", (req, res) => {
   if (!req.cookies.user_email) {
     return res.status(401).json({ loggedIn: false });

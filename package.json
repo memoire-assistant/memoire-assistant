@@ -16,6 +16,7 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "luxon": "^3.7.2",
     "openai": "^6.17.0",
     "resend": "^6.9.1"
   }

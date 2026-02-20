@@ -5,6 +5,7 @@ const { createClient } = require("@supabase/supabase-js");
 const OpenAI = require("openai");
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const { DateTime } = require("luxon");
 
 // ✅ Supabase remplace Notion
 const supabase = createClient(
@@ -188,19 +189,36 @@ Réponds STRICTEMENT en JSON valide, selon ce format :
     ]
   });
 
-  const aiResponse = JSON.parse(
-    completion.choices[0].message.content
-  );
+const aiResponse = JSON.parse(
+  completion.choices[0].message.content
+);
 
-  // 2. ✅ Écriture dans Supabase (plus simple que Notion!)
-  const { error: insertError } = await supabase
-    .from("notes")
-    .insert({
-      user_id: userId,
-      titre: aiResponse.titre,
-      contenu: aiResponse.contenu,
-      date_rappel: aiResponse.date_rappel || null
-    });
+// 🕐 Convertir la date de rappel du fuseau utilisateur vers UTC
+let dateRappelUTC = null;
+if (aiResponse.date_rappel) {
+  // L'IA retourne ex: "2026-02-19T18:00" (sans timezone)
+  // On doit l'interpréter comme étant dans le fuseau de l'utilisateur
+  
+  const dateInUserTZ = DateTime.fromISO(aiResponse.date_rappel, {
+    zone: userTimezone // "America/Toronto"
+  });
+  
+  // Convertir en UTC pour Supabase
+  dateRappelUTC = dateInUserTZ.toUTC().toISO();
+  
+  console.log(`📅 Date entrée par user: ${aiResponse.date_rappel} (${userTimezone})`);
+  console.log(`📅 Date stockée (UTC): ${dateRappelUTC}`);
+}
+
+// 2. ✅ Écriture dans Supabase
+const { error: insertError } = await supabase
+  .from("notes")
+  .insert({
+    user_id: userId,
+    titre: aiResponse.titre,
+    contenu: aiResponse.contenu,
+    date_rappel: dateRappelUTC
+  });
 
   if (insertError) {
     console.error("Erreur insertion Supabase:", insertError);

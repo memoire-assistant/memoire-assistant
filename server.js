@@ -6,6 +6,7 @@ const OpenAI = require("openai");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { DateTime } = require("luxon");
+const webpush = require('web-push');
 
 // ✅ Supabase remplace Notion
 const supabase = createClient(
@@ -24,6 +25,14 @@ const app = express();
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cookieParser());
+
+const webpush = require('web-push');
+
+webpush.setVapidDetails(
+  'mailto:caro_gobeil@hotmail.com',
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
+);
 
 app.post("/message", async (req, res) => {
   const userEmail = req.cookies.user_email;
@@ -429,6 +438,48 @@ app.post("/logout", (req, res) => {
     path: "/"
   });
   res.json({ success: true });
+});
+
+// ============ ENDPOINT : Sauvegarder la souscription push ============
+app.post("/api/save-push-subscription", async (req, res) => {
+  try {
+    const userEmail = req.cookies.user_email;
+    
+    if (!userEmail) {
+      return res.status(401).json({ error: "Non authentifié" });
+    }
+
+    const subscription = req.body;
+
+    // Récupérer l'ID utilisateur
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", userEmail)
+      .single();
+
+    if (userError || !userData) {
+      return res.status(404).json({ error: "Utilisateur introuvable" });
+    }
+
+    // Sauvegarder la souscription dans la table users
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ push_subscription: subscription })
+      .eq("id", userData.id);
+
+    if (updateError) {
+      console.error("❌ Erreur sauvegarde souscription:", updateError);
+      return res.status(500).json({ error: "Erreur sauvegarde" });
+    }
+
+    console.log("✅ Souscription push sauvegardée pour user:", userData.id);
+    res.json({ success: true });
+
+  } catch (error) {
+    console.error("❌ Erreur endpoint save-push-subscription:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
 });
 
 const PORT = process.env.PORT || 3000;

@@ -360,18 +360,90 @@ if (voiceEnabled && "speechSynthesis" in window) {
   messageInput.focus(); // micro-amélioration TDA ✨
 }
 
-function startVoice() {
-  const input = document.getElementById("message");
+// ============ RECONNAISSANCE VOCALE ============
+// Variable globale pour la reconnaissance vocale
+let recognition;
+let isListening = false;
 
-  input.focus();
-
-  const micButton = document.getElementById("micButton");
-  micButton.classList.add("active");
-
-  setTimeout(() => {
-    micButton.classList.remove("active");
-  }, 300);
+// Initialiser la reconnaissance vocale au chargement
+function initVoiceRecognition() {
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'fr-CA'; // Français canadien
+    recognition.continuous = false; // Une phrase à la fois
+    recognition.interimResults = false; // Pas de résultats partiels
+    
+    recognition.onstart = () => {
+      isListening = true;
+      const micButton = document.getElementById("micButton");
+      const status = document.getElementById("status");
+      micButton.style.backgroundColor = "#4299e1"; // Bleu quand actif
+      micButton.style.transform = "scale(1.1)";
+      status.innerText = "🎤 Écoute en cours... Parle maintenant!";
+    };
+    
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      const messageInput = document.getElementById("message");
+      messageInput.value = transcript;
+      document.getElementById("status").innerText = "✅ Enregistré : " + transcript;
+    };
+    
+    recognition.onerror = (event) => {
+      console.error("Erreur reconnaissance vocale:", event.error);
+      const status = document.getElementById("status");
+      
+      if (event.error === 'no-speech') {
+        status.innerText = "😶 Aucune voix détectée. Réessaie!";
+      } else if (event.error === 'not-allowed') {
+        status.innerText = "🚫 Permission micro refusée. Vérifie les paramètres.";
+      } else {
+        status.innerText = "❌ Erreur : " + event.error;
+      }
+    };
+    
+    recognition.onend = () => {
+      isListening = false;
+      const micButton = document.getElementById("micButton");
+      micButton.style.backgroundColor = ""; // Retour à la normale
+      micButton.style.transform = "scale(1)";
+      
+      // Efface le statut après 3 secondes
+      setTimeout(() => {
+        const status = document.getElementById("status");
+        if (!status.innerText.includes("erreur")) {
+          status.innerText = "";
+        }
+      }, 3000);
+    };
+  }
 }
+
+// Fonction appelée quand on clique sur le bouton micro
+function startVoice() {
+  if (!recognition) {
+    document.getElementById("status").innerText = "❌ Reconnaissance vocale non disponible sur cet appareil.";
+    return;
+  }
+  
+  if (isListening) {
+    recognition.stop();
+    return;
+  }
+  
+  try {
+    recognition.start();
+  } catch (error) {
+    console.error("Erreur démarrage micro:", error);
+    document.getElementById("status").innerText = "❌ Impossible de démarrer le micro.";
+  }
+}
+
+// Initialiser au chargement de la page
+window.addEventListener('load', initVoiceRecognition);
+
+// ============ FIN RECONNAISSANCE VOCALE ============
 
 async function requestLoginLink() {
   const email = document.getElementById("email").value;

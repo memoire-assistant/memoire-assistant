@@ -26,8 +26,6 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(cookieParser());
 
-const webpush = require('web-push');
-
 webpush.setVapidDetails(
   'mailto:caro_gobeil@hotmail.com',
   process.env.VAPID_PUBLIC_KEY,

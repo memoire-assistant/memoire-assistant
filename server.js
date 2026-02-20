@@ -480,6 +480,44 @@ app.post("/api/save-push-subscription", async (req, res) => {
   }
 });
 
+// ============ ENDPOINT TEST : Envoyer une notification immédiate ============
+app.post("/api/test-notification", async (req, res) => {
+  try {
+    const userEmail = req.cookies.user_email;
+    
+    if (!userEmail) {
+      return res.status(401).json({ error: "Non authentifié" });
+    }
+
+    // Récupérer l'utilisateur et sa souscription push
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("id, push_subscription")
+      .eq("email", userEmail)
+      .single();
+
+    if (userError || !userData || !userData.push_subscription) {
+      return res.status(404).json({ error: "Pas de souscription push trouvée" });
+    }
+
+    // Envoyer la notification
+    const payload = JSON.stringify({
+      title: "🧪 Test notification",
+      body: "Si tu vois ça, les notifications fonctionnent! 🎉",
+      icon: "/icon-192.png"
+    });
+
+    await webpush.sendNotification(userData.push_subscription, payload);
+
+    console.log("✅ Notification test envoyée");
+    res.json({ success: true, message: "Notification envoyée!" });
+
+  } catch (error) {
+    console.error("❌ Erreur envoi notification test:", error);
+    res.status(500).json({ error: "Erreur envoi notification" });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {

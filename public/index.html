@@ -678,8 +678,6 @@ async function registerPushSubscription() {
   try {
     const registration = await navigator.serviceWorker.ready;
     
-    // Clé VAPID publique (on va la générer à l'étape suivante)
-    // Pour l'instant on met une clé temporaire vide
     const vapidPublicKey = 'BJ4Ann1v_Fpm8aDp6XnyUgjkoxF60PIDWIh13Svdq9JmgQ_Wpnz0cdjSxlluoRF5OmDq6UgOf8Czcel9v7R8XiE';
     
     const subscription = await registration.pushManager.subscribe({
@@ -689,19 +687,19 @@ async function registerPushSubscription() {
     
     console.log('✅ Souscription push créée');
     
-    // Envoyer au serveur pour sauvegarde
-    const token = localStorage.getItem("token");
     const response = await fetch("/api/save-push-subscription", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(subscription)
+      body: JSON.stringify(subscription),
+      credentials: 'include'
     });
     
     if (response.ok) {
       console.log('✅ Souscription push sauvegardée');
+    } else {
+      console.error('❌ Erreur sauvegarde:', await response.text());
     }
   } catch (error) {
     console.error('❌ Erreur enregistrement push:', error);
